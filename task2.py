@@ -5,12 +5,45 @@ import time
 from datetime import datetime, timedelta
 
 if not os.path.exists("users.json"):
-    data = {
-        "user01": {"name": "user01", 'password': 'Test@123', "balance": 2500,'Card status': 'Active','wrong_inputs01': 0,'blocking': 'No','blocked_at': None},
-        "user02": {"name": "user02",'password': 'Test@456', "balance": 1500 ,'Card status': 'Active','wrong_inputs02': 0,'blocking': 'No','blocked_at': None},
-        "user03": {"name": "user03",'password': 'Test@789', "balance": 3000,'Card status': 'Active', 'wrong_inputs03': 0,'blocking': 'No','blocked_at': None}
-    } 
-    with open("users.json", "w", encoding="utf-8") as file:
+   data = {
+        "user01": {
+            "name": "user01", 
+            "password": "Test@123", 
+            "account_number": "10010001",  
+            "balance": 2500, 
+            "Card status": "Active", 
+            "wrong_inputs01": 0, 
+            "blocking": "No", 
+            "blocked_at": None, 
+            "lockout_until": None,
+            "last_login": None             
+        },
+        "user02": {
+            "name": "user02",
+            "password": "Test@456", 
+            "account_number": "10010002", 
+            "balance": 1500, 
+            "Card status": "Active", 
+            "wrong_inputs02": 0, 
+            "blocking": "No", 
+            "blocked_at": None, 
+            "lockout_until": None,
+            "last_login": None            
+        },
+        "user03": {
+            "name": "user03",
+            "password": "Test@789", 
+            "account_number": "10010003",  
+            "balance": 3000, 
+            "Card status": "Active", 
+            "wrong_inputs03": 0, 
+            "blocking": "No", 
+            "blocked_at": None, 
+            "lockout_until": None,
+            "last_login": None             
+        }
+   } 
+with open("users.json", "w", encoding="utf-8") as file:
         json.dump(data, file, indent=4, ensure_ascii=False)
 
 with open("users.json", "r", encoding="utf-8") as file:
@@ -31,6 +64,15 @@ users=[loaded_data["user01"]["name"],loaded_data["user02"]["name"],loaded_data["
 users_passwords=[]
 k=s()
 
+def blocked_user(seconds=60):
+    print("Too many failed login attempts.")
+    for remaining_time in range(seconds, -1, -1):
+        # :02d o deməkdir ki, 9 rəqəmini 09 kimi göstərsin (00:59, 00:09, 00:00)
+        print(f"\rPlease wait: 00:{remaining_time:02d} ", end="")
+        time.sleep(1)
+    print("\nYou may try again.\n")
+    return 1
+
 user1 = 999 if loaded_data["user01"]["blocking"] == 'Yes' else (6 if loaded_data["user01"]["wrong_inputs01"] >= 3 else 3)
 user2 = 999 if loaded_data["user02"]["blocking"] == 'Yes' else (6 if loaded_data["user02"]["wrong_inputs02"] >= 3 else 3)
 user3 = 999 if loaded_data["user03"]["blocking"] == 'Yes' else (6 if loaded_data["user03"]["wrong_inputs03"] >= 3 else 3)
@@ -43,15 +85,28 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
             break
 
         user_name = input('Enter user name:')
-        user_password = input('Enter your password:')
-        
+    
         user_idx = users.index(user_name) if user_name in users else -1
         
         
         if user_idx != -1 and loaded_data[user_name]["blocking"] == 'Yes':
             print('Maximum login attempts exceeded. Your card has been blocked. Please contact the bank administrator.')
             continue 
+        if user_idx != -1 and loaded_data[user_name]["lockout_until"] is not None:
+            lockout_end = datetime.strptime(loaded_data[user_name]["lockout_until"], "%Y-%m-%d %H:%M:%S")
+            now = datetime.now()
+            if now < lockout_end:
+                qalan_saniye = int((lockout_end - now).total_seconds())
+                blocked_user(qalan_saniye)
+                loaded_data[user_name]["lockout_until"] = None
+                save_data()
+            else:
+                loaded_data[user_name]["lockout_until"] = None
+                save_data()
 
+
+
+        user_password = input('Enter your password:')
         hash_object_user = hashlib.sha256(user_password.encode('utf-8'))
         hashed_result_user = hash_object_user.hexdigest()
         pass_idx = users_passwords.index(hashed_result_user) if hashed_result_user in users_passwords else -2
@@ -59,6 +114,10 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
         if user_idx == pass_idx:
             
             loaded_data[user_name][f"wrong_inputs0{user_idx+1}"] = 0
+            loaded_data[user_name]["lockout_until"] = None
+
+            loaded_data[user_name]["last_login"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
             save_data()
             print(loaded_data[f"user0{user_idx+1}"])
             return 1
@@ -85,24 +144,27 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
         print("All cards are blocked!")
         return 0
 
-    def blocked_user():
-        print("User account locked out, remaining seconds until next login attempt:\n")
-        for remaining_time in range(60, -1, -1):
-            print(f"\rRemaining time until next possible login: {remaining_time} saniyə ", end="")
-            time.sleep(1)
-        print("\n\nTime is over, you can log in again:")
-        return 1
+
 
     
     if wrong_inputs01 == 3 or wrong_inputs01 == 6:
         if wrong_inputs01 == 3 and user1 == 3:
+            lockout_time = (datetime.now() + timedelta(seconds=60)).strftime("%Y-%m-%d %H:%M:%S")
+            loaded_data["user01"]["lockout_until"] = lockout_time
+            save_data()
+            
             k = blocked_user()
+
+            loaded_data["user01"]["lockout_until"] = None
+            save_data()
+
             user1 = 6
             t = Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
         elif wrong_inputs01 == 6 and loaded_data["user01"]["blocking"] == 'No':
-            print('This card blocked')
+            print('Maximum login attempts exceeded. Your card has been blocked. Please contact the bank administrator.')
             loaded_data["user01"]["blocking"] = 'Yes'
             loaded_data["user01"]["Card status"] = 'Blocked'
+            loaded_data["user01"]["blocked_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             user1 = 999
             save_data() 
             t = Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
@@ -110,13 +172,22 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
     
     if wrong_inputs02 == 3 or wrong_inputs02 == 6:
         if wrong_inputs02 == 3 and user2 == 3:
+            lockout_time = (datetime.now() + timedelta(seconds=60)).strftime("%Y-%m-%d %H:%M:%S")
+            loaded_data["user02"]["lockout_until"] = lockout_time
+            save_data()
+
             k = blocked_user()
             user2 = 6
+
+            loaded_data["user02"]["lockout_until"] = None
+            save_data()
+
             t = Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
         elif wrong_inputs02 == 6 and loaded_data["user02"]["blocking"] == 'No':
-            print('This card blocked')
+            print('Maximum login attempts exceeded. Your card has been blocked. Please contact the bank administrator.')
             loaded_data["user02"]["blocking"] = 'Yes'
             loaded_data["user02"]["Card status"] = 'Blocked'
+            loaded_data["user02"]["blocked_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             user2 = 999
             save_data()
             t = Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
@@ -124,13 +195,21 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
     
     if wrong_inputs03 == 3 or wrong_inputs03 == 6:
         if wrong_inputs03 == 3 and user3 == 3:
+            lockout_time = (datetime.now() + timedelta(seconds=60)).strftime("%Y-%m-%d %H:%M:%S")
+            loaded_data["user03"]["lockout_until"] = lockout_time
+            save_data()
+
             k = blocked_user()
             user3 = 6
+            loaded_data["user03"]["lockout_until"] = None
+            save_data()
+
             t = Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
         elif wrong_inputs03 == 6 and loaded_data["user03"]["blocking"] == 'No':
-            print('This card blocked')
+            print('Maximum login attempts exceeded. Your card has been blocked. Please contact the bank administrator.')
             loaded_data["user03"]["blocking"] = 'Yes'
             loaded_data["user03"]["Card status"] = 'Blocked'
+            loaded_data["user03"]["blocked_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             user3 = 999
             save_data()
             t = Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)

@@ -2,25 +2,37 @@
     "user01": {
         "name": "user01",
         "password": "Test@123",
+        "account_number": "10010001",
         "balance": 2500,
-        "Card status": "Blocked",
-        "wrong_inputs01": 6,
-        "blocking": "Yes"
+        "Card status": "Active",
+        "wrong_inputs01": 0,
+        "blocking": "No",
+        "blocked_at": null,
+        "lockout_until": null,
+        "last_login": "2026-11-13 00:49:33"
     },
     "user02": {
         "name": "user02",
         "password": "Test@456",
+        "account_number": "10010002",
         "balance": 1500,
         "Card status": "Active",
-        "wrong_inputs02": 2,
-        "blocking": "No"
+        "wrong_inputs02": 0,
+        "blocking": "No",
+        "blocked_at": null,
+        "lockout_until": null,
+        "last_login": null
     },
     "user03": {
         "name": "user03",
         "password": "Test@789",
+        "account_number": "10010003",
         "balance": 3000,
         "Card status": "Active",
-        "wrong_inputs03": 1,
-        "blocking": "No"
+        "wrong_inputs03": 0,
+        "blocking": "No",
+        "blocked_at": null,
+        "lockout_until": null,
+        "last_login": null
     }
 }
