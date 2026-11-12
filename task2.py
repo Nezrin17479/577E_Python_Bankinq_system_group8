@@ -1,5 +1,14 @@
 import hashlib
-import time
+import json
+import os
+from datetime import datetime, timedelta
+
+data = {
+    "user01": {"name": "Ali", "balance": 2500},
+    "user02": {"name": "Leyla", "balance": 1500},
+    "user03": {"name": "Murad", "balance": 3000}
+}
+
 def s():
     for password_user in passwords:
         hash_object_user=hashlib.sha256(password_user.encode('utf-8'))
