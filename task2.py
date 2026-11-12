@@ -120,7 +120,7 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
 
             save_data()
             print(loaded_data[f"user0{user_idx+1}"])
-            return 1
+            return user_name
         elif user_idx == -1:
             print('Wrong username or password')
         elif user_idx == 0:
@@ -167,7 +167,7 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
             loaded_data["user01"]["blocked_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             user1 = 999
             save_data() 
-            t = Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
+            return Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
 
     
     if wrong_inputs02 == 3 or wrong_inputs02 == 6:
@@ -182,7 +182,7 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
             loaded_data["user02"]["lockout_until"] = None
             save_data()
 
-            t = Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
+            return  Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
         elif wrong_inputs02 == 6 and loaded_data["user02"]["blocking"] == 'No':
             print('Maximum login attempts exceeded. Your card has been blocked. Please contact the bank administrator.')
             loaded_data["user02"]["blocking"] = 'Yes'
@@ -190,7 +190,7 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
             loaded_data["user02"]["blocked_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             user2 = 999
             save_data()
-            t = Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
+            return  Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
 
     
     if wrong_inputs03 == 3 or wrong_inputs03 == 6:
@@ -214,9 +214,77 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
             save_data()
             t = Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
 
-result_passwords = Password_checking(
+result_p_checking = Password_checking(
     loaded_data["user01"]["wrong_inputs01"], 
     loaded_data["user02"]["wrong_inputs02"], 
     loaded_data["user03"]["wrong_inputs03"], 
     user1, user2, user3
 )
+
+
+
+
+def change_password(user_name):
+    print("\n--- CHANGE PASSWORD ---")
+    current_pass = input("Enter current password: ")
+    
+   
+    current_pass_hash = hashlib.sha256(current_pass.encode('utf-8')).hexdigest()
+    stored_pass_hash = hashlib.sha256(loaded_data[user_name]["password"].encode('utf-8')).hexdigest()
+    
+    if current_pass_hash != stored_pass_hash:
+        print("Incorrect current password. Password change failed.")
+        return False
+        
+    while True:
+        new_pass = input("Enter new password (min 8 chars, 1 uppercase, 1 lowercase, 1 digit): ")
+        
+        if len(new_pass) < 8:
+            print("Password must be at least 8 characters long.")
+            continue
+       
+        if not any(c.isupper() for c in new_pass):
+            print("Password must contain at least one uppercase letter.")
+            continue
+     
+        if not any(c.islower() for c in new_pass):
+            print("Password must contain at least one lowercase letter.")
+            continue
+      
+        if not any(c.isdigit() for c in new_pass):
+            print("Password must contain at least one digit.")
+            continue
+       
+        if new_pass == loaded_data[user_name]["password"]:
+            print("New password cannot be the same as the old password.")
+            continue
+            
+        
+        confirm_pass = input("Confirm new password: ")
+        if new_pass != confirm_pass:
+            print("Passwords do not match. Please try again.")
+            continue
+            
+        
+        loaded_data[user_name]["password"] = new_pass
+        save_data()
+        
+        
+        global passwords, users_passwords
+        passwords = [loaded_data["user01"]["password"], loaded_data["user02"]["password"], loaded_data["user03"]["password"]]
+        users_passwords.clear()
+        s()
+        
+        print("Password successfully changed!")
+        return True
+
+
+if result_p_checking in users:
+    p_changing_question=input('Do you want to change your password?(Yes or No)')
+    match p_changing_question:
+        case 'Yes':
+            result_p_changing=change_password(result_p_checking)
+        case 'No':
+            print('Okay!')
+
+
