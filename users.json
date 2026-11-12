@@ -1,0 +1,26 @@
+{
+    "user01": {
+        "name": "user01",
+        "password": "Test@123",
+        "balance": 2500,
+        "Card status": "Blocked",
+        "wrong_inputs01": 6,
+        "blocking": "Yes"
+    },
+    "user02": {
+        "name": "user02",
+        "password": "Test@456",
+        "balance": 1500,
+        "Card status": "Active",
+        "wrong_inputs02": 2,
+        "blocking": "No"
+    },
+    "user03": {
+        "name": "user03",
+        "password": "Test@789",
+        "balance": 3000,
+        "Card status": "Active",
+        "wrong_inputs03": 1,
+        "blocking": "No"
+    }
+}
