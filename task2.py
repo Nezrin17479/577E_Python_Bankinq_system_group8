@@ -121,6 +121,7 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
             save_data()
             print(loaded_data[f"user0{user_idx+1}"])
             return user_name
+        
         elif user_idx == -1:
             print('Wrong username or password')
         elif user_idx == 0:
@@ -212,7 +213,7 @@ def Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, use
             loaded_data["user03"]["blocked_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             user3 = 999
             save_data()
-            t = Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
+            return Password_checking(wrong_inputs01, wrong_inputs02, wrong_inputs03, user1, user2, user3)
 
 result_p_checking = Password_checking(
     loaded_data["user01"]["wrong_inputs01"], 
