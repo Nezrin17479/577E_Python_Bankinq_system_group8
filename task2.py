@@ -67,7 +67,7 @@ k=s()
 def blocked_user(seconds=60):
     print("Too many failed login attempts.")
     for remaining_time in range(seconds, -1, -1):
-        # :02d o deməkdir ki, 9 rəqəmini 09 kimi göstərsin (00:59, 00:09, 00:00)
+        
         print(f"\rPlease wait: 00:{remaining_time:02d} ", end="")
         time.sleep(1)
     print("\nYou may try again.\n")
